@@ -60,10 +60,16 @@ class Scheduler:
 
         m = self.AT_RE.match(spec.strip())
         if m:
+            hour, minute = int(m.group(1)), int(m.group(2))
+            if not (0 <= hour <= 23 and 0 <= minute <= 59):
+                raise SchedulerError(
+                    f"Invalid time in schedule spec: {spec!r} "
+                    f"(hour must be 0-23, minute 0-59)"
+                )
             now = datetime.now()
             target = now.replace(
-                hour=int(m.group(1)),
-                minute=int(m.group(2)),
+                hour=hour,
+                minute=minute,
                 second=0,
                 microsecond=0,
             )
