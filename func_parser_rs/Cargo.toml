@@ -1,0 +1,19 @@
+[package]
+name = "func_parser_rs"
+version = "0.1.0"
+edition = "2021"
+description = "Modular, extensible command/function parser — Rust implementation"
+license = "MIT"
+readme = "README.md"
+keywords = ["parser", "command", "cli", "async"]
+categories = ["command-line-interface", "parsing"]
+
+[dependencies]
+tokio = { version = "1", features = ["full"] }
+regex = "1"
+thiserror = "1"
+indexmap = "2"
+
+[[example]]
+name = "basic"
+path = "examples/basic.rs"

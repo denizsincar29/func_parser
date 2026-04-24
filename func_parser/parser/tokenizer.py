@@ -177,10 +177,12 @@ class Tokenizer:
         if low == "/execute":
             return TokenType.EXECUTE
 
-        # First real token on line (or after operator) → COMMAND if starts with /
+        # First real token on line (or after operator) → COMMAND only if starts with /
         meaningful = [t for t in preceding if t.type not in (TokenType.EOF, TokenType.COMMENT)]
         if not meaningful:
-            return TokenType.COMMAND
+            if word.startswith("/"):
+                return TokenType.COMMAND
+            return TokenType.ARG  # plain-text word — not a command
 
         last = meaningful[-1]
         if last.type in (TokenType.PIPE, TokenType.AND, TokenType.OR):

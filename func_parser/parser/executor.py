@@ -19,7 +19,7 @@ from ..core.models import CommandInfo, CommandResult, OutputRedirect
 from ..core.validation import coerce_type, validate_arg
 from .ast_nodes import (
     ASTNode, AndNode, CommandNode, ExecuteScriptNode, IfNode,
-    OrNode, PipelineNode, SetVarNode, TextNode,
+    OrNode, PipelineNode, SetVarNode, TextNode, WhileNode,
 )
 from .tokenizer import Token, TokenType, Tokenizer
 
@@ -99,6 +99,8 @@ class Parser:
             return last
         elif isinstance(node, IfNode):
             return await self._execute_if(node, ctx)
+        elif isinstance(node, WhileNode):
+            return await self._execute_while(node, ctx)
         return CommandResult("unknown", {}, "unknown")
 
     async def execute_script(self, path: str, ctx: ExecutionContext) -> List[CommandResult]:
@@ -389,6 +391,20 @@ class Parser:
         if branch is not None:
             return await self.execute_node(branch, ctx)
         return CommandResult("if", {}, "success")
+
+    async def _execute_while(self, node: WhileNode, ctx: ExecutionContext) -> CommandResult:
+        """Execute a WhileNode: loop while condition variable is truthy."""
+        last: CommandResult = CommandResult("while", {}, "success")
+        for _ in range(node.max_iterations):
+            condition_val = self._vars.get(node.condition, "false")
+            truthy = str(condition_val).lower() not in ("", "0", "false", "no", "none")
+            if not truthy:
+                break
+            if node.body is not None:
+                last = await self.execute_node(node.body, ctx)
+            if last.status == "error":
+                break
+        return last
 
     # ------------------------------------------------------------------
     # Arg binding

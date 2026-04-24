@@ -16,6 +16,7 @@ __all__ = [
     "ExecuteScriptNode",
     "TextNode",
     "IfNode",
+    "WhileNode",
 ]
 
 
@@ -79,3 +80,17 @@ class IfNode(ASTNode):
     condition: str = ""
     body: Optional[ASTNode] = None
     else_body: Optional[ASTNode] = None
+
+
+@dataclass
+class WhileNode(ASTNode):
+    """Loop while a variable/condition is truthy.
+
+    ``condition`` is a variable name or expression string evaluated via
+    :class:`~func_parser.core.variables.VariableStore`.
+    ``body`` is the node to execute on each iteration.
+    ``max_iterations`` guards against infinite loops (default 1 000).
+    """
+    condition: str = ""
+    body: Optional[ASTNode] = None
+    max_iterations: int = 1_000
