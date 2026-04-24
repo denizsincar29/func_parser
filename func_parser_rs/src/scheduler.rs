@@ -1,12 +1,7 @@
 //! Task scheduler for func_parser_rs.
 
 use std::time::Duration;
-use chrono::{Local, Timelike};
 use crate::errors::{FuncParserError, Result};
-
-// Note: chrono is a common optional dep; we use only std time here to keep
-// dependencies minimal and avoid adding chrono to Cargo.toml.
-// We re-implement the "at HH:MM" calculation using std only.
 
 /// Parse a schedule spec and return the initial delay in seconds.
 ///

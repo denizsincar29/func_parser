@@ -5,7 +5,7 @@ use std::sync::Arc;
 
 use func_parser_rs::{
     CommandRegistry, ExecutionContext, Parser, PermissionChecker,
-    models::{ArgDef, ArgValue, AsyncHandler, CommandInfo, CommandStatus},
+    models::{ArgDef, ArgValue, AsyncHandler, CommandInfo},
     middleware::MiddlewareChain,
     pipeline::AsyncPipeline,
     variables::VariableStore,

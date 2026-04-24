@@ -15,10 +15,8 @@ pub fn preset_pattern(name: &str) -> Option<&'static str> {
     }
 }
 
-/// Coerce a raw string value to an `ArgValue` based on the arg definition.
-pub fn coerce(raw: &str, arg: &ArgDef) -> ArgValue {
-    // func_parser_rs stores everything as String in ArgValue for simplicity;
-    // callers can parse further if needed.
+/// Coerce a raw string value to an `ArgValue`.
+pub fn coerce(raw: &str) -> ArgValue {
     ArgValue::String(raw.to_string())
 }
 

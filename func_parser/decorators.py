@@ -305,8 +305,34 @@ class CommandParser:
         input_str: str,
         ctx: Optional["ExecutionContext"] = None,
     ) -> "CommandResult":
-        """Synchronous execute wrapper."""
-        return asyncio.run(self.execute(input_str, ctx))
+        """Synchronous execute wrapper (alias for :meth:`execute_sync`)."""
+        return self.execute_sync(input_str, ctx)
+
+    def execute_sync(
+        self,
+        input_str: str,
+        ctx: Optional["ExecutionContext"] = None,
+    ) -> "CommandResult":
+        """Execute *input_str* synchronously.
+
+        Works from any context — including inside a running event loop (e.g.
+        Jupyter notebooks) — by dispatching to a background thread when needed.
+        """
+        try:
+            running_loop = asyncio.get_running_loop()
+        except RuntimeError:
+            running_loop = None
+
+        coro = self.execute(input_str, ctx)
+        if running_loop is not None and running_loop.is_running():
+            # We are inside an async context (e.g. Jupyter / nested event loop).
+            # Run the coroutine in a brand-new thread that has its own event loop.
+            import concurrent.futures
+            with concurrent.futures.ThreadPoolExecutor(max_workers=1) as pool:
+                future = pool.submit(asyncio.run, coro)
+                return future.result()
+        else:
+            return asyncio.run(coro)
 
     def loop(self, prompt: str = "> ", ctx: Optional["ExecutionContext"] = None):
         """Interactive sync loop — yields :class:`CommandResult` objects."""
@@ -316,7 +342,7 @@ class CommandParser:
         while True:
             try:
                 line = input(prompt)
-                result = asyncio.run(self.execute(line, ctx))
+                result = self.execute_sync(line, ctx)
                 yield result
             except EOFError:
                 break

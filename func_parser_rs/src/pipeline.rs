@@ -3,7 +3,7 @@
 use std::collections::HashMap;
 use crate::context::ExecutionContext;
 use crate::errors::Result;
-use crate::models::{ArgValue, CommandInfo, CommandResult, CommandStatus, OutputRedirect};
+use crate::models::{ArgValue, CommandInfo, CommandResult, CommandStatus};
 
 /// Executes command handlers and manages output redirection.
 pub struct AsyncPipeline;
@@ -68,7 +68,6 @@ impl AsyncPipeline {
         };
         let text = result.output.as_ref().map(|o| o.to_string()).unwrap_or_default();
         if redirect.is_file() {
-            let mode = if redirect.append { "append" } else { "write" };
             if redirect.append {
                 use std::io::Write;
                 let mut f = std::fs::OpenOptions::new()

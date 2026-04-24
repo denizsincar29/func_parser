@@ -3,9 +3,10 @@
 use std::collections::HashMap;
 use std::sync::Arc;
 
+use async_recursion::async_recursion;
+
 use crate::ast::{AstNode, CommandNode, PipelineNode, SetVarNode, TextNode, VarScope};
 use crate::context::ExecutionContext;
-use crate::errors::{FuncParserError, Result};
 use crate::middleware::MiddlewareChain;
 use crate::models::{ArgValue, CommandResult, CommandStatus, OutputRedirect};
 use crate::permissions::PermissionChecker;
@@ -16,11 +17,11 @@ use crate::variables::VariableStore;
 
 /// Main parser: converts input strings into AST nodes and executes them.
 pub struct Parser {
-    registry: Arc<std::sync::RwLock<CommandRegistry>>,
-    vars: VariableStore,
-    permissions: PermissionChecker,
-    middleware: MiddlewareChain,
-    pipeline: AsyncPipeline,
+    pub(crate) registry: Arc<std::sync::RwLock<CommandRegistry>>,
+    pub(crate) vars: VariableStore,
+    pub(crate) permissions: PermissionChecker,
+    pub(crate) middleware: MiddlewareChain,
+    pub(crate) pipeline: AsyncPipeline,
     pub debug: bool,
 }
 
@@ -42,6 +43,11 @@ impl Parser {
         }
     }
 
+    /// Return the shared registry `Arc` (for sharing between `Parser` and `SyncParser`).
+    pub fn registry_arc(&self) -> Arc<std::sync::RwLock<CommandRegistry>> {
+        Arc::clone(&self.registry)
+    }
+
     // -----------------------------------------------------------------------
     // Public API
     // -----------------------------------------------------------------------
@@ -61,6 +67,7 @@ impl Parser {
     }
 
     /// Execute an AST node.
+    #[async_recursion(?Send)]
     pub async fn execute_node(&mut self, node: AstNode, ctx: ExecutionContext) -> CommandResult {
         match node {
             AstNode::Text(n) => self.execute_text(n, ctx).await,
@@ -229,9 +236,12 @@ impl Parser {
     // -----------------------------------------------------------------------
 
     async fn execute_text(&self, node: TextNode, ctx: ExecutionContext) -> CommandResult {
-        let registry = self.registry.read().unwrap();
-        let handler = match registry.default_handler() {
-            Some(h) => h.clone(),
+        let handler = {
+            let registry = self.registry.read().unwrap();
+            registry.default_handler().cloned()
+        };
+        let handler = match handler {
+            Some(h) => h,
             None => {
                 return CommandResult {
                     name: "default".to_string(),
@@ -243,7 +253,6 @@ impl Parser {
                 };
             }
         };
-        drop(registry);
 
         let mut args = HashMap::new();
         args.insert("content".to_string(), ArgValue::String(node.content));
