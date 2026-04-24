@@ -2,14 +2,14 @@
 from __future__ import annotations
 
 import re
-from typing import Any
+from typing import Any, Dict, Optional
 
 from .errors import InvalidArgError, ValidationError
 from .models import ArgDef
 
 __all__ = ["PRESETS", "coerce_type", "validate_arg"]
 
-PRESETS: dict[str, str] = {
+PRESETS: Dict[str, str] = {
     "email": r"^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$",
     "url": r"^https?://[^\s/$.?#].[^\s]*$",
     "phone": r"^\+?[\d\s\-().]{7,20}$",
@@ -73,7 +73,7 @@ def validate_arg(name: str, value: Any, arg_def: ArgDef) -> Any:
             pass
 
     # regex
-    pattern: str | None = arg_def.regex
+    pattern: Optional[str] = arg_def.regex
     if arg_def.preset and arg_def.preset in PRESETS:
         pattern = PRESETS[arg_def.preset]
 
