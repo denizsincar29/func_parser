@@ -9,3 +9,4 @@ On completing each task, please mark it as done, because sometimes you stop the 
 7. ( ) If command parser is in cli mode, you can have kinda parser.run() method that will automatically read stdin and execute commands, running it's default exit command on ctrl+c or if it's off, raise system exit or whatever. And parser.loop() is a generator that yields command results, so you can have more control over the loop, like breaking it on some condition or something. Both in python and rust.
 8. ( ) Adapt every test and example to use all the new features, and make sure to have good coverage for all the features, especially the new ones. Both in python and rust.
 9. ( ) Write rust examples, for now there are just basic.rs, but we need examples for all the features, and also some complex examples that use multiple features together.
+10. ( ) write a good gitignore and remove everything that should be ignored. Remember, python version must be on uv package manager.
